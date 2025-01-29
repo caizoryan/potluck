@@ -5,10 +5,12 @@ let script = fs.readFileSync("./template.js", "utf-8");
 let list = [
 	"aaryan",
 	"potluck",
+	"saad",
 	"amir",
 	"sanchari",
 	"omama",
 	"anisha",
+	"vanessa",
 	"jose",
 	"alexandra",
 	"yigit",
