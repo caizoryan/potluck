@@ -11,7 +11,8 @@ let list = [
 	"anisha",
 	"jose",
 	"alexandra",
-	"yigit"
+	"yigit",
+	"aryaman"
 ]
 
 let template = (name) => `
