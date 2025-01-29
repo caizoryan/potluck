@@ -7,15 +7,131 @@
 </head>
 
 <style>
-	body {
-		background: #004cff;
+	* {
+		margin: 0;
+		padding: 0;
 	}
 
-	.controls {}
+	a {
+		all: unset;
+		color: orange;
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	#message {
+		font-family: monospace;
+		padding: 20px;
+	}
+
+	body {
+		background: #004cff;
+		color: white;
+	}
+
+	#buttons {
+		display: grid;
+		grid-gap: 10px;
+		padding: 2px 10px;
+	}
+
+	button {
+		all: unset;
+		border: 1px solid white;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+	}
+
+	.controls {
+		display: grid;
+		padding: 10px 0;
+		grid-template-columns: 6fr 1fr 1.5fr;
+		gridGap: 50px
+	}
 
 	.container {
 		max-width: 550px;
 		margin: 0 auto;
+	}
+
+	input[type="range"] {
+		margin: auto;
+		-webkit-appearance: none;
+		position: relative;
+		overflow: hidden;
+		height: 20px;
+		width: 200px;
+		cursor: pointer;
+		border-radius: 0;
+
+		background: #fff2;
+		margin-right: 10px;
+		margin-bottom: 2px;
+	}
+
+	.controls span {
+		padding: 3px;
+		border: 1px solid white;
+		border-radius: 5px;
+	}
+
+
+	/*
+ * 1. Set to 0 width and remove border for a slider without a thumb
+ * 2. Shadow is negative the full width of the input and has a spread 
+ *    of the width of the input.
+ */
+	::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		width: 20px;
+		/* 1 */
+		height: 20px;
+		background: #ffffff22;
+	}
+
+	::-moz-range-track {
+		height: 20px;
+	}
+
+	::-moz-range-thumb {
+		background: #ffffff22;
+		height: 20px;
+		width: 20px;
+		box-sizing: border-box;
+		border-radius: 0px !important;
+		border: 1px white solid;
+	}
+
+	::-ms-fill-lower {
+		background: dodgerblue;
+	}
+
+	::-ms-thumb {
+		background: #ffffff22;
+		height: 20px;
+		width: 20px;
+		box-sizing: border-box;
+	}
+
+	::-ms-ticks-after {
+		display: none;
+	}
+
+	::-ms-ticks-before {
+		display: none;
+	}
+
+	::-ms-track {
+		background: #ddd;
+		color: transparent;
+		height: 40px;
+		border: none;
+	}
+
+	::-ms-tooltip {
+		display: none;
 	}
 </style>
 
@@ -94,11 +210,6 @@
 		send_points(name, points).then((res) => console.log(res))
 	}
 
-	let rgb = document.createElement("div")
-	rgb.appendChild(red.el)
-	rgb.appendChild(green.el)
-	rgb.appendChild(blue.el)
-
 	let color_out = document.createElement("div")
 
 	const update_color = (r, g, b) => color_out.style.background = `rgb(${r}, ${g}, ${b})`
@@ -110,10 +221,7 @@
 	green.subscribe(on_color_change)
 
 	let controls = document.createElement("div")
-	controls.style.display = "grid"
-	controls.style.gridTemplateColumns = "1fr 2fr 4fr"
-	controls.style.gridGap = "50px"
-
+	controls.className = "controls"
 
 	function undo() {
 		let u = points.pop()
@@ -139,12 +247,30 @@
 	redo_btn.innerText = "redo"
 	redo_btn.onclick = () => {redo()}
 
-	controls.appendChild(save)
+	let buttons = document.createElement("div")
+	buttons.id = "buttons"
+
+	buttons.appendChild(undo_btn)
+	buttons.appendChild(redo_btn)
+	buttons.appendChild(save)
+
+	let sliders_set = document.createElement("div")
+	sliders_set.id = "sliders"
+
+	sliders_set.appendChild(red.el)
+	sliders_set.appendChild(green.el)
+	sliders_set.appendChild(blue.el)
+
+	let brush_size_label = document.createElement("p")
+	brush_size_label.style.marginTop = "10px"
+	brush_size_label.innerText = "Brush Size:"
+
+	sliders_set.appendChild(brush_size_label)
+	sliders_set.appendChild(brush_size.el)
+
+	controls.appendChild(sliders_set)
 	controls.appendChild(color_out)
-	controls.appendChild(rgb)
-	controls.appendChild(undo_btn)
-	controls.appendChild(redo_btn)
-	controls.appendChild(brush_size.el)
+	controls.appendChild(buttons)
 
 
 	get_points("potluck").then((res) => {
@@ -160,8 +286,8 @@
 		}
 		let last = 0
 		points.forEach((p) => {
-			setTimeout(() => {draw_potluck(p)}, last + ss)
-			last += p.points.length * ss + 5
+			setTimeout(() => {draw_potluck(p)}, last + speed)
+			last += p.points.length * speed + 5
 		})
 	}
 
@@ -180,13 +306,24 @@
 			setTimeout(() => {
 				pot.lineTo(x, y);
 				pot.stroke();
-			}, i * ss)
+			}, i * speed)
 		})
 	}
 
+	let message = document.createElement("p")
+	message.id = "message"
+	message.innerText = `
+Hey ${name}! I'm hosting a potluck at Avant on 2 Feb to celebrate Aryman* and my birthday. Please come!
+
+To RSVP -> Draw what you will be cooking below and click save. 
+If you don't know what you are bringing you can just draw a '(?)' and update later.
+`
+
+	message.innerHTML += '<br></br><a href="https://caizoryan.github.io/potluck">Visit here to see the live menu + guestlist</a>'
 
 	let container = document.querySelector(".container")
 	container.appendChild(pot_c)
+	container.appendChild(message)
 	container.appendChild(c)
 	container.appendChild(controls)
 
@@ -211,7 +348,7 @@
 		context.clearRect(0, 0, canvas.width, canvas.height);
 	}
 
-	let ss = .1
+	let speed = 2
 
 	function render_points(points, slow = false) {
 		if (!slow) points.forEach(draw_stroke)
@@ -221,9 +358,9 @@
 
 				setTimeout(() => {
 					draw_animated_stroke(p)
-				}, last + ss)
+				}, last + speed)
 
-				last += p.points.length * ss + 5
+				last += p.points.length * speed + 5
 			}
 			)
 		}
@@ -244,7 +381,7 @@
 			setTimeout(() => {
 				context.lineTo(x, y);
 				context.stroke();
-			}, i * ss)
+			}, i * speed)
 		})
 	}
 
