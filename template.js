@@ -172,6 +172,8 @@ Hey ${name}! I'm hosting a potluck at Avant on 2 Feb to celebrate Aryman* and my
 
 To RSVP -> Draw what you will be cooking below and click save. 
 If you don't know what you are bringing you can just draw a '(?)' and update later.
+
+* Aryman is my friend from high school, he studies at Waterloo.
 `
 
 message.innerHTML += '<br></br><a href="https://caizoryan.github.io/potluck">Visit here to see the live menu + guestlist</a>'
