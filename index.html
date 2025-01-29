@@ -142,7 +142,7 @@
 </html>
 
 <script>
-	let name = "aaryan"
+	let name = "testing"
 	let host = "https://caizoryan-receiveandsavepoints.web.val.run/"
 	let scale = 1
 
@@ -360,6 +360,7 @@ If you don't know what you are bringing you can just draw a '(?)' and update lat
 					draw_animated_stroke(p)
 				}, last + speed)
 
+				if (!p.points || p.points.length <= 0) return
 				last += p.points.length * speed + 5
 			}
 			)
@@ -367,6 +368,8 @@ If you don't know what you are bringing you can just draw a '(?)' and update lat
 	}
 
 	function draw_animated_stroke(stroke) {
+
+		if (!stroke.points || stroke.points.length <= 0) return
 		let first = stroke.points[0]
 
 		context.beginPath();
@@ -421,7 +424,8 @@ If you don't know what you are bringing you can just draw a '(?)' and update lat
 			context.beginPath();
 
 			if (points.length <= 0
-				|| last_point().points.length != 0
+				|| !last_point()?.points
+				|| last_point()?.points?.length != 0
 			) {
 				points.push(
 					new_stroke(`rgb(${red.value()}, ${green.value()},${blue.value()})`, brush_size.value())

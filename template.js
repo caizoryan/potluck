@@ -215,6 +215,7 @@ function render_points(points, slow = false) {
 				draw_animated_stroke(p)
 			}, last + speed)
 
+			if (!p.points || p.points.length <= 0) return
 			last += p.points.length * speed + 5
 		}
 		)
@@ -222,6 +223,8 @@ function render_points(points, slow = false) {
 }
 
 function draw_animated_stroke(stroke) {
+
+	if (!stroke.points || stroke.points.length <= 0) return
 	let first = stroke.points[0]
 
 	context.beginPath();
@@ -276,7 +279,8 @@ window.addEventListener('load', async function() {
 		context.beginPath();
 
 		if (points.length <= 0
-			|| last_point().points.length != 0
+			|| !last_point()?.points
+			|| last_point()?.points?.length != 0
 		) {
 			points.push(
 				new_stroke(`rgb(${red.value()}, ${green.value()},${blue.value()})`, brush_size.value())
