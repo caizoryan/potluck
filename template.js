@@ -67,288 +67,289 @@ save.onclick = () => {
 
 let color_out = document.createElement("div")
 
-const update_color = (r, g, b) => color_out.style.background = \`rgb(${r}, ${g}, ${b})\`
-		const on_color_change = () => update_color(red.value(), green.value(), blue.value())
-		on_color_change()
+const update_color = (r, g, b) => color_out.style.background = `rgb(${r}, ${g}, ${b})`
+const on_color_change = () => update_color(red.value(), green.value(), blue.value())
+on_color_change()
 
-		red.subscribe(on_color_change)
-		blue.subscribe(on_color_change)
-		green.subscribe(on_color_change)
+red.subscribe(on_color_change)
+blue.subscribe(on_color_change)
+green.subscribe(on_color_change)
 
-		let controls = document.createElement("div")
-		controls.className = "controls"
+let controls = document.createElement("div")
+controls.className = "controls"
 
-		function undo() {
-			let u = points.pop()
-			if (u) undo_stack.push(u)
+function undo() {
+	let u = points.pop()
+	if (u) undo_stack.push(u)
 
-			clear()
-			render_points(points)
+	clear()
+	render_points(points)
+}
+
+function redo() {
+	let r = undo_stack.pop()
+	if (r) points.push(r)
+
+	clear()
+	render_points(points)
+}
+
+let undo_btn = document.createElement("button")
+undo_btn.innerText = "undo"
+undo_btn.onclick = () => { undo() }
+
+let redo_btn = document.createElement("button")
+redo_btn.innerText = "redo"
+redo_btn.onclick = () => { redo() }
+
+let buttons = document.createElement("div")
+buttons.id = "buttons"
+
+buttons.appendChild(undo_btn)
+buttons.appendChild(redo_btn)
+buttons.appendChild(save)
+
+let sliders_set = document.createElement("div")
+sliders_set.id = "sliders"
+
+sliders_set.appendChild(red.el)
+sliders_set.appendChild(green.el)
+sliders_set.appendChild(blue.el)
+
+let brush_size_label = document.createElement("p")
+brush_size_label.style.marginTop = "10px"
+brush_size_label.innerText = "Brush Size:"
+
+sliders_set.appendChild(brush_size_label)
+sliders_set.appendChild(brush_size.el)
+
+controls.appendChild(sliders_set)
+controls.appendChild(color_out)
+controls.appendChild(buttons)
+
+
+get_points("potluck").then((res) => {
+	if (res.points) {
+		potluck_animation(res.points, true)
+	}
+})
+function potluck_animation(points) {
+	if (!pot) {
+		pot = pot_c.getContext("2d")
+		pot.canvas.width = "500"
+		pot.canvas.height = "500"
+	}
+	let last = 0
+	points.forEach((p) => {
+		setTimeout(() => { draw_potluck(p) }, last + speed)
+		last += p.points.length * speed + 5
+	})
+}
+
+function draw_potluck(stroke) {
+	let first = stroke.points[0]
+
+	pot.beginPath();
+	pot.strokeStyle = stroke.color
+	pot.lineWidth = stroke.strokeWidth
+		? stroke.strokeWidth
+		: 1
+	pot.moveTo(first[0], first[1])
+
+	stroke.points.forEach((e, i) => {
+		let [x, y] = e
+		setTimeout(() => {
+			pot.lineTo(x, y);
+			pot.stroke();
+		}, i * speed)
+	})
+}
+
+let message = document.createElement("p")
+message.id = "message"
+message.innerText = `
+Hey ${name}! I'm hosting a potluck at Avant on 2 Feb to celebrate Aryman* and my birthday. Please come!
+
+To RSVP -> Draw what you will be cooking below and click save. 
+If you don't know what you are bringing you can just draw a '(?)' and update later.
+`
+
+message.innerHTML += '<br></br><a href="https://caizoryan.github.io/potluck">Visit here to see the live menu + guestlist</a>'
+
+let container = document.querySelector(".container")
+container.appendChild(pot_c)
+container.appendChild(message)
+container.appendChild(c)
+container.appendChild(controls)
+
+let points = []
+let undo_stack = []
+let last_point = () => points[points.length - 1]
+
+// add to stroke
+function add_to_stroke(x, y) {
+	if (points.length > 0) last_point().points.push([x, y])
+}
+
+function new_stroke(color = "green", s) {
+	return {
+		color: color,
+		points: [],
+		strokeWidth: s
+	}
+}
+
+function clear() {
+	context.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+let speed = 2
+
+function render_points(points, slow = false) {
+	if (!slow) points.forEach(draw_stroke)
+	else {
+		let last = 0
+		points.forEach((p) => {
+
+			setTimeout(() => {
+				draw_animated_stroke(p)
+			}, last + speed)
+
+			last += p.points.length * speed + 5
 		}
+		)
+	}
+}
 
-		function redo() {
-			let r = undo_stack.pop()
-			if (r) points.push(r)
+function draw_animated_stroke(stroke) {
+	let first = stroke.points[0]
 
-			clear()
-			render_points(points)
+	context.beginPath();
+	context.strokeStyle = stroke.color
+	context.lineWidth = stroke.strokeWidth
+		? stroke.strokeWidth
+		: 1
+	context.moveTo(first[0], first[1])
+
+	stroke.points.forEach((e, i) => {
+		let [x, y] = e
+		setTimeout(() => {
+			context.lineTo(x, y);
+			context.stroke();
+		}, i * speed)
+	})
+}
+
+function draw_stroke(stroke) {
+	let first = stroke.points[0]
+
+	context.beginPath();
+	context.strokeStyle = stroke.color
+	context.moveTo(first[0], first[1])
+	context.lineWidth = stroke.strokeWidth
+		? stroke.strokeWidth
+		: 1
+
+	stroke.points.forEach((e) => {
+		let [x, y] = e
+		context.lineTo(x, y);
+		context.stroke();
+	})
+
+}
+window.addEventListener('load', async function() {
+	// get the canvas element and its context
+	canvas = c;
+	context = canvas.getContext('2d');
+	var isIdle = true;
+
+	context.canvas.width = "500"
+	context.canvas.height = "500"
+
+	let pp = await get_points(name)
+	if (pp && pp.points) {
+		points = pp.points
+		render_points(points, true)
+	}
+
+	function drawstart(event) {
+		context.beginPath();
+
+		if (points.length <= 0
+			|| last_point().points.length != 0
+		) {
+			points.push(
+				new_stroke(`rgb(${red.value()}, ${green.value()},${blue.value()})`, brush_size.value())
+			)
 		}
-
-		let undo_btn = document.createElement("button")
-		undo_btn.innerText = "undo"
-		undo_btn.onclick = () => {undo()}
-
-		let redo_btn = document.createElement("button")
-		redo_btn.innerText = "redo"
-		redo_btn.onclick = () => {redo()}
-
-		let buttons = document.createElement("div")
-		buttons.id = "buttons"
-
-		buttons.appendChild(undo_btn)
-		buttons.appendChild(redo_btn)
-		buttons.appendChild(save)
-
-		let sliders_set = document.createElement("div")
-		sliders_set.id = "sliders"
-
-		sliders_set.appendChild(red.el)
-		sliders_set.appendChild(green.el)
-		sliders_set.appendChild(blue.el)
-
-		let brush_size_label = document.createElement("p")
-		brush_size_label.style.marginTop = "10px"
-		brush_size_label.innerText = "Brush Size:"
-
-		sliders_set.appendChild(brush_size_label)
-		sliders_set.appendChild(brush_size.el)
-
-		controls.appendChild(sliders_set)
-		controls.appendChild(color_out)
-		controls.appendChild(buttons)
+		context.strokeStyle = last_point().color
+		context.lineWidth = last_point().strokeWidth
+			? last_point().strokeWidth
+			: 1
 
 
-		get_points("potluck").then((res) => {
-			if (res.points) {
-				potluck_animation(res.points, true)
-			}
-		})
-		function potluck_animation(points) {
-			if (!pot) {
-				pot = pot_c.getContext("2d")
-				pot.canvas.width = "500"
-				pot.canvas.height = "500"
-			}
-			let last = 0
-			points.forEach((p) => {
-				setTimeout(() => {draw_potluck(p)}, last + speed)
-				last += p.points.length * speed + 5
-			})
-		}
+		let rect = event.target.getBoundingClientRect();
+		let x = event.clientX - rect.left; //x position within the element.
+		let y = event.clientY - rect.top;
 
-		function draw_potluck(stroke) {
-			let first = stroke.points[0]
-
-			pot.beginPath();
-			pot.strokeStyle = stroke.color
-			pot.lineWidth = stroke.strokeWidth
-				? stroke.strokeWidth
-				: 1
-			pot.moveTo(first[0], first[1])
-
-			stroke.points.forEach((e, i) => {
-				let [x, y] = e
-				setTimeout(() => {
-					pot.lineTo(x, y);
-					pot.stroke();
-				}, i * speed)
-			})
-		}
-
-		let message = document.createElement("p")
-		message.id = "message"
-		message.innerText = `
-	Hey ${ name } !I'm hosting a potluck at Avant on 2 Feb to celebrate Aryman* and my birthday. Please come!
-
-	To RSVP -> Draw what you will be cooking below and click save. 
-	If you don't know what you are bringing you can just draw a '(?)' and update later.
-	`
-
-		message.innerHTML += '<br></br><a href="https://caizoryan.github.io/potluck">Visit here to see the live menu + guestlist</a>'
-
-		let container = document.querySelector(".container")
-		container.appendChild(pot_c)
-		container.appendChild(message)
-		container.appendChild(c)
-		container.appendChild(controls)
-
-		let points = []
-		let undo_stack = []
-		let last_point = () => points[points.length - 1]
-
-		// add to stroke
-		function add_to_stroke(x, y) {
-			if (points.length > 0) last_point().points.push([x, y])
-		}
-
-		function new_stroke(color = "green", s) {
-			return {
-				color: color,
-				points: [],
-				strokeWidth: s
-			}
-		}
-
-		function clear() {
-			context.clearRect(0, 0, canvas.width, canvas.height);
-		}
-
-		let speed = 2
-
-		function render_points(points, slow = false) {
-			if (!slow) points.forEach(draw_stroke)
-			else {
-				let last = 0
-				points.forEach((p) => {
-
-					setTimeout(() => {
-						draw_animated_stroke(p)
-					}, last + speed)
-
-					last += p.points.length * speed + 5
-				}
-				)
-			}
-		}
-
-		function draw_animated_stroke(stroke) {
-			let first = stroke.points[0]
-
-			context.beginPath();
-			context.strokeStyle = stroke.color
-			context.lineWidth = stroke.strokeWidth
-				? stroke.strokeWidth
-				: 1
-			context.moveTo(first[0], first[1])
-
-			stroke.points.forEach((e, i) => {
-				let [x, y] = e
-				setTimeout(() => {
-					context.lineTo(x, y);
-					context.stroke();
-				}, i * speed)
-			})
-		}
-
-		function draw_stroke(stroke) {
-			let first = stroke.points[0]
-
-			context.beginPath();
-			context.strokeStyle = stroke.color
-			context.moveTo(first[0], first[1])
-			context.lineWidth = stroke.strokeWidth
-				? stroke.strokeWidth
-				: 1
-
-			stroke.points.forEach((e) => {
-				let [x, y] = e
-				context.lineTo(x, y);
-				context.stroke();
-			})
-
-		}
-		window.addEventListener('load', async function () {
-			// get the canvas element and its context
-			canvas = c;
-			context = canvas.getContext('2d');
-			var isIdle = true;
-
-			context.canvas.width = "500"
-			context.canvas.height = "500"
-
-			let pp = await get_points(name)
-			if (pp && pp.points) {
-				points = pp.points
-				render_points(points, true)
-			}
-
-			function drawstart(event) {
-				context.beginPath();
-
-				if (points.length <= 0
-					|| last_point().points.length != 0
-				) {
-					points.push(
-						new_stroke(`rgb(${ red.value() }, ${ green.value() }, ${ blue.value() })`, brush_size.value())
-					)
-				}
-				context.strokeStyle = last_point().color
-				context.lineWidth = last_point().strokeWidth
-					? last_point().strokeWidth
-					: 1
+		x = x / scale
+		y = y / scale
 
 
-				let rect = event.target.getBoundingClientRect();
-				let x = event.clientX - rect.left; //x position within the element.
-				let y = event.clientY - rect.top;
+		add_to_stroke(x, y)
 
-				x = x / scale
-				y = y / scale
+		context.moveTo(x, y);
+		isIdle = false;
+	}
 
+	function drawmove(event) {
+		if (isIdle) return;
 
-				add_to_stroke(x, y)
+		let rect = event.target.getBoundingClientRect();
+		let x = event.clientX - rect.left; //x position within the element.
+		let y = event.clientY - rect.top;
 
-				context.moveTo(x, y);
-				isIdle = false;
-			}
+		x = x / scale
+		y = y / scale
 
-			function drawmove(event) {
-				if (isIdle) return;
+		context.lineWidth = last_point().strokeWidth
+			? last_point().strokeWidth
+			: 1
 
-				let rect = event.target.getBoundingClientRect();
-				let x = event.clientX - rect.left; //x position within the element.
-				let y = event.clientY - rect.top;
+		add_to_stroke(x, y)
 
-				x = x / scale
-				y = y / scale
+		context.lineTo(x, y);
+		context.stroke();
+	}
 
-				context.lineWidth = last_point().strokeWidth
-					? last_point().strokeWidth
-					: 1
+	function drawend(event) {
+		if (isIdle) return;
+		drawmove(event);
+		isIdle = true;
+		context.lineWidth = 1
 
-				add_to_stroke(x, y)
+		console.log("ok", points)
+	}
 
-				context.lineTo(x, y);
-				context.stroke();
-			}
+	function touchstart(event) { drawstart(event.touches[0]) }
+	function touchmove(event) { drawmove(event.touches[0]); event.preventDefault(); }
+	function touchend(event) { drawend(event.changedTouches[0]) }
 
-			function drawend(event) {
-				if (isIdle) return;
-				drawmove(event);
-				isIdle = true;
-				context.lineWidth = 1
+	canvas.addEventListener('touchstart', touchstart, false);
+	canvas.addEventListener('touchmove', touchmove, false);
+	canvas.addEventListener('touchend', touchend, false);
 
-				console.log("ok", points)
-			}
+	canvas.addEventListener('mousedown', drawstart, false);
+	canvas.addEventListener('mousemove', drawmove, false);
+	canvas.addEventListener('mouseup', drawend, false);
 
-			function touchstart(event) {drawstart(event.touches[0])}
-			function touchmove(event) {drawmove(event.touches[0]); event.preventDefault();}
-			function touchend(event) {drawend(event.changedTouches[0])}
+}, false);
 
-			canvas.addEventListener('touchstart', touchstart, false);
-			canvas.addEventListener('touchmove', touchmove, false);
-			canvas.addEventListener('touchend', touchend, false);
+if (window.innerWidth < 500) {
+	container.style.transformOrigin = "0 0"
+	scale = (window.innerWidth) / 500
+	container.style.transform = `scale(${scale})`
 
-			canvas.addEventListener('mousedown', drawstart, false);
-			canvas.addEventListener('mousemove', drawmove, false);
-			canvas.addEventListener('mouseup', drawend, false);
+}
 
-		}, false);
-
-		if (window.innerWidth < 500) {
-			container.style.transformOrigin = "0 0"
-			scale = (window.innerWidth) / 500
-			container.style.transform = `scale(${ scale })`
-
-		}
 
