@@ -3,8 +3,16 @@ import fs from "fs";
 let script = fs.readFileSync("./template.js", "utf-8");
 
 let list = [
-	"amir", "omama", "sanchari", "anisha", "aaryan", "shakalaka"
-];
+	"aaryan",
+	"potluck",
+	"amir",
+	"sanchari",
+	"omama",
+	"anisha",
+	"jose",
+	"alexandra",
+	"yigit"
+]
 
 let template = (name) => `
 	<!DOCTYPE html>
