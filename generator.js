@@ -3,7 +3,7 @@ import fs from "fs";
 let script = fs.readFileSync("./template.js", "utf-8");
 
 let list = [
-	"amir", "omama", "sanchari", "anisha", "aaryan", "testing"
+	"amir", "omama", "sanchari", "anisha", "aaryan", "shakalaka"
 ];
 
 let template = (name) => `
@@ -152,8 +152,7 @@ let template = (name) => `
 
 	<script>
 		let name = "${name}"
-${script}
-
+		${script}
 	</script>
 `
 
